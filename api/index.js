@@ -60,7 +60,9 @@ module.exports = async (req, res) => {
       payload: req.body,
     });
 
-    Object.entries(response.headers).forEach(([key, value]) => {
+    Object.entries(response.headers)
+    .filter(([key]) => key.toLowerCase() !== 'content-encoding')
+    .forEach(([key, value]) => {
       res.setHeader(key, value);
     });
 
