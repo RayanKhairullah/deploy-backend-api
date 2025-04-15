@@ -145,7 +145,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "E:\\DicodingCamp2025\\Capstone\\deploy-tetsting\\src\\generated\\prisma",
+      "value": "E:\\DicodingCamp2025\\Capstone\\deploy-neurofin-backend\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -159,7 +159,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "E:\\DicodingCamp2025\\Capstone\\deploy-tetsting\\prisma\\schema.prisma",
+    "sourceFilePath": "E:\\DicodingCamp2025\\Capstone\\deploy-neurofin-backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
