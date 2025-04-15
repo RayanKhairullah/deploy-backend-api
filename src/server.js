@@ -9,13 +9,16 @@ const init = async () => {
   const server = Hapi.server({
     port: process.env.PORT || 9000,
     host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
+    compression: {
+      minBytes: 1024 
+    },
     routes: {
       cors: {
         origin: ['*'],
         credentials: true,
-        headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'],
-        exposedHeaders: ['WWW-Authenticate', 'Server-Authorization'],
-        maxAge: 86400
+          headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match', 'Accept-Encoding'], 
+          exposedHeaders: ['WWW-Authenticate', 'Server-Authorization', 'Content-Encoding'], 
+          maxAge: 86400
       }
     }
   });

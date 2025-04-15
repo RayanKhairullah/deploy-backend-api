@@ -12,11 +12,11 @@ async function initServer() {
   if (!server) {
     server = Hapi.server({ 
       port: process.env.PORT || 3000,
-      host: '0.0.0.0',
       compression: {
         minBytes: 1024 
       },
       routes: {
+      host: '0.0.0.0',
         cors: {
           origin: ['*'],
           credentials: true,
