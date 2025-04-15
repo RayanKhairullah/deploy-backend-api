@@ -20,8 +20,8 @@ async function initServer() {
         cors: {
           origin: ['*'],
           credentials: true,
-          headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match', 'Accept-Encoding'], // <-- Tambah Accept-Encoding
-          exposedHeaders: ['WWW-Authenticate', 'Server-Authorization', 'Content-Encoding'], // <-- Tambah Content-Encoding
+          headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match', 'Accept-Encoding'], 
+          exposedHeaders: ['WWW-Authenticate', 'Server-Authorization', 'Content-Encoding'], 
           maxAge: 86400
         }
       }
@@ -37,25 +37,34 @@ async function initServer() {
 module.exports = async (req, res) => {
   try {
     const server = await initServer();
-    const response = await server.inject({
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-      payload: req.body,
-    });
+    const { method, url, headers, body: payload } = req;
+    
+    const hapiReq = {
+      method,
+      url,
+      headers,
+      payload,
+      info: {
+        remoteAddress: headers['x-forwarded-for'] || req.socket.remoteAddress
+      }
+    };
 
-    // Set headers from the Hapi response
+    const response = await server.inject(hapiReq);
+
     Object.entries(response.headers).forEach(([key, value]) => {
       res.setHeader(key, value);
     });
 
-    // Send status and result
-    res.status(response.statusCode).json(response.result);
+    if (response.statusCode === 302 && response.headers.location) {
+      return res.redirect(response.statusCode, response.headers.location);
+    }
+
+    res.status(response.statusCode).send(response.result);
   } catch (error) {
-    console.error('Error processing request:', error);
+    console.error('Error:', error);
     res.status(500).json({ 
-      status: 'error', 
-      message: 'Internal Server Error' 
+      status: 'error',
+      message: 'Internal server error'
     });
   }
 };
