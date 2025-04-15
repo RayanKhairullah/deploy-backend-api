@@ -54,37 +54,24 @@ async function initServer() {
 module.exports = async (req, res) => {
   try {
     const server = await initServer();
-    const { method, url, headers, body: payload } = req;
-    
-    // Konversi Vercel request ke format Hapi
-    const hapiReq = {
-      method,
-      url,
-      headers,
-      payload,
-      info: {
-        remoteAddress: headers['x-forwarded-for'] || req.socket.remoteAddress
-      }
-    };
+    const response = await server.inject({
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      payload: req.body,
+    });
 
-    const response = await server.inject(hapiReq);
-
-    // Set headers
     Object.entries(response.headers).forEach(([key, value]) => {
       res.setHeader(key, value);
     });
 
-    // Handle redirects
-    if (response.statusCode === 302 && response.headers.location) {
-      return res.redirect(response.statusCode, response.headers.location);
-    }
-
-    res.status(response.statusCode).send(response.result);
+    // Send status and result
+    res.status(response.statusCode).json(response.result);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error processing request:', error);
     res.status(500).json({ 
-      status: 'error',
-      message: 'Internal server error'
+      status: 'error', 
+      message: 'Internal Server Error' 
     });
   }
 };
