@@ -60,4 +60,6 @@ if (require.main === module) {
   init();
 }
 
-module.exports = { init };
+module.exports = { 
+  init 
+};
