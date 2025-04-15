@@ -12,22 +12,39 @@ async function initServer() {
   if (!server) {
     server = Hapi.server({ 
       port: process.env.PORT || 3000,
-      compression: {
-        minBytes: 1024 
-      },
-      routes: {
       host: '0.0.0.0',
+      compression: { minBytes: 1024 },
+      routes: {
         cors: {
           origin: ['*'],
           credentials: true,
-          headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match', 'Accept-Encoding'], 
-          exposedHeaders: ['WWW-Authenticate', 'Server-Authorization', 'Content-Encoding'], 
+          headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'],
+          exposedHeaders: ['WWW-Authenticate', 'Server-Authorization'],
           maxAge: 86400
         }
       }
     });
 
-    // ... (kode cookie dan registrasi route tetap sama)
+    server.state('token', {
+      ttl: 1000 * 60 * 60 * 4,
+      isSecure: process.env.NODE_ENV === 'production',
+      isHttpOnly: true,
+      encoding: 'none',
+      clearInvalid: false,
+      strictHeader: true,
+      path: '/'
+    });
+
+    server.app.db = prisma;
+    server.route([...authRoutes, ...routes]);
+
+    server.ext('onPreResponse', (request, h) => {
+      const response = request.response;
+      if (response.isBoom) {
+        return errorHandler(response, h);
+      }
+      return h.continue;
+    });
 
     await server.initialize();
   }
@@ -39,6 +56,7 @@ module.exports = async (req, res) => {
     const server = await initServer();
     const { method, url, headers, body: payload } = req;
     
+    // Konversi Vercel request ke format Hapi
     const hapiReq = {
       method,
       url,
@@ -51,10 +69,12 @@ module.exports = async (req, res) => {
 
     const response = await server.inject(hapiReq);
 
+    // Set headers
     Object.entries(response.headers).forEach(([key, value]) => {
       res.setHeader(key, value);
     });
 
+    // Handle redirects
     if (response.statusCode === 302 && response.headers.location) {
       return res.redirect(response.statusCode, response.headers.location);
     }
