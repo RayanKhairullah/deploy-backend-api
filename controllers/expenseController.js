@@ -41,7 +41,7 @@ const addExpenseHandler = async (request, h) => {
 
 // Dapatkan semua expense milik user
 const getExpensesByUserHandler = async (request, h) => {
-  const userId = request.auth.credentials.id; // pastikan middleware auth mengisi credentials
+  const userId = request.auth.credentials.id;
   try {
     const expenses = await prisma.expense.findMany({
       where: { id_user: userId },
