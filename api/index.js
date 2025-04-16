@@ -78,7 +78,15 @@ module.exports = async (req, res) => {
         res.setHeader(key, value);
       });
 
-    res.status(response.statusCode).json(response.result);
+    // Periksa jenis konten
+    const contentType = response.headers['content-type'] || '';
+    if (contentType.includes('text/html')) {
+      // Kirim buffer langsung untuk HTML
+      res.status(response.statusCode).send(response.payload);
+    } else {
+      // Kirim sebagai JSON untuk konten lainnya
+      res.status(response.statusCode).json(response.result);
+    }
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ 
