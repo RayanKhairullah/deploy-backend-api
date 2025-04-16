@@ -1,12 +1,10 @@
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
-const routes = require('../routes/expenseRoutes');
+const routes = require('../routes/expenseRoutes'); // route lainnya (misalnya authRoutes, dll.) jika ada
 const authRoutes = require('../routes/authRoutes');
 const prisma = require('../utils/prismaClient');
 const errorHandler = require('../middlewares/errorHandler');
-const Inert = require('@hapi/inert');
-const path = require('path');
 
 let server;
 
@@ -26,16 +24,7 @@ async function initServer() {
       }
     });
 
-    await server.register(Inert);
-
-    server.route({
-      method: 'GET',
-      path: '/',
-      handler: {
-        file: path.join(__dirname, '../docs/docs.html')
-      }
-    });
-
+    // Jika menggunakan cookie, atur state token
     server.state('token', {
       ttl: 1000 * 60 * 60 * 4,
       isSecure: process.env.NODE_ENV === 'production',
@@ -47,8 +36,333 @@ async function initServer() {
     });
 
     server.app.db = prisma;
+
+    // Tambahkan route dokumentasi di root
+    const documentationHTML = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>API Documentation - Neurofin Backend</title>
+          <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+            rel="stylesheet"
+          />
+          <link
+            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+            rel="stylesheet"
+          />
+          <style>
+            body {
+              font-family: 'Roboto', sans-serif;
+            }
+          </style>
+        </head>
+        <body class="bg-gray-50">
+          <div class="container mx-auto px-4 py-8">
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+              <h1 class="text-4xl font-bold text-gray-800 mb-6">
+                API Documentation untuk Frontend
+              </h1>
+              <p class="text-lg text-gray-600 mb-4">
+                Berikut adalah dokumentasi untuk penggunaan endpoint API.
+              </p>
+
+              <section class="mt-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+                  Endpoint API
+                </h2>
+                <p>
+                  <strong>Headers:</strong>
+                  <code class="bg-gray-100 p-1 rounded">
+                    Content-Type: application/json
+                  </code>
+                  (digunakan untuk endpoint <em>register</em>, <em>verify-email</em>, dan
+                  <em>login</em>)
+                </p>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Register</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">POST /register</code>
+                </p>
+                <p class="mt-2"><strong>Request example:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "username": "username",
+        "email": "emailemail@gmail.com",
+        "password": "securepassword"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Registrasi berhasil, cek email untuk verifikasi"
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Verify Email</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">POST /verify-email</code>
+                </p>
+                <p class="mt-2"><strong>Request example:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "email": "emailemail@gmail.com",
+        "code": "pfoGvpK1ba"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Email berhasil diverifikasi"
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Login</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">POST /login</code>
+                </p>
+                <p class="mt-2"><strong>Request example:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "email": "emailbudi@gmail.com",
+        "password": "securepassword"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Login berhasil",
+        "data": {
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Create Expense</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">POST /expenses</code>
+                </p>
+                <p class="mt-2"><strong>Request example:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "category": "Food",
+        "uangMasuk": 0,
+        "uangKeluar": 50000,
+        "uangAkhir": 950000,
+        "description": "Lunch with friends",
+        "transaction_date": "2025-03-28"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Expense berhasil ditambahkan",
+        "data": {
+            "expenseid": "random11char"
+        }
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Get All Expenses</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">GET /expenses</code>
+                </p>
+                <p class="mt-2"><strong>Response:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "data": {
+            "expenses": [
+                {
+                    "expenseid": "random11char",
+                    "category": "Food",
+                    "uangmasuk": 0,
+                    "uangkeluar": 50000,
+                    "uangakhir": 950000,
+                    "description": "Lunch with friends",
+                    "transaction_date": "2025-03-28",
+                    "createdAt": "2025-03-28T12:00:00.000Z",
+                    "updatedAt": "2025-03-28T12:00:00.000Z"
+                }
+            ]
+        }
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Get Expense by ID</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">GET /expenses/{expenseid}</code>
+                </p>
+                <p class="mt-2"><strong>Response (Jika Ditemukan):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "data": {
+            "expense": {
+                "expenseid": "random11char",
+                "category": "Food",
+                "uangmasuk": 0,
+                "uangkeluar": 50000,
+                "uangakhir": 950000,
+                "description": "Lunch with friends",
+                "transaction_date": "2025-03-28",
+                "createdAt": "2025-03-28T12:00:00.000Z",
+                "updatedAt": "2025-03-28T12:00:00.000Z"
+            }
+        }
+      }
+                </pre>
+                <p class="mt-2"><strong>Response (Jika Tidak Ditemukan):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "fail",
+        "message": "Expense tidak ditemukan"
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Update Expense by ID</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">PUT /expenses/{expenseid}</code>
+                </p>
+                <p class="mt-2"><strong>Request example:</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "category": "Transport",
+        "uangMasuk": 0,
+        "uangKeluar": 20000,
+        "uangAkhir": 930000,
+        "description": "Taxi fare",
+        "transaction_date": "2025-03-28"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response (Jika Berhasil):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Expense berhasil diperbarui"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response (Jika Tidak Ditemukan):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "fail",
+        "message": "Expense gagal diperbarui. Id tidak ditemukan"
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Delete Expense by ID</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">DELETE /expenses/{expenseid}</code>
+                </p>
+                <p class="mt-2"><strong>Response (Jika Berhasil):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Expense berhasil dihapus"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response (Jika Tidak Ditemukan):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "fail",
+        "message": "Expense gagal dihapus. Id tidak ditemukan"
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Me</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">GET /me</code>
+                </p>
+                <p class="mt-2"><strong>Response (Jika Berhasil):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Berhasil mendapatkan data user",
+        "data": {
+            "id": 1,
+            "username": "user",
+            "email": "emailbudi@gmail.com",
+            "verified": true,
+            "createdAt": "2025-04-15T06:38:50.433Z"
+        }
+      }
+                </pre>
+              </section>
+
+              <section class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800">Logout</h3>
+                <p class="mt-2">
+                  <strong>URL:</strong>
+                  <code class="bg-gray-100 p-1 rounded">POST /logout</code>
+                </p>
+                <p class="mt-2"><strong>Response (Jika Berhasil):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "success",
+        "message": "Logout berhasil"
+      }
+                </pre>
+                <p class="mt-2"><strong>Response (Jika Gagal):</strong></p>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">
+      {
+        "status": "fail",
+        "statusCode": 401,
+        "message": "Token tidak valid atau kadaluarsa"
+      }
+                </pre>
+              </section>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Daftarkan route-documentation
+    server.route({
+      method: 'GET',
+      path: '/',
+      handler: (request, h) => {
+        return h.response(documentationHTML).type('text/html');
+      }
+    });
+
+    // Daftarkan route API lainya
     server.route([...authRoutes, ...routes]);
 
+    // Global error handling
     server.ext('onPreResponse', (request, h) => {
       const response = request.response;
       if (response.isBoom) {
@@ -72,16 +386,14 @@ module.exports = async (req, res) => {
       payload: req.body,
     });
 
-    // Set headers from Hapi response
-    res.setHeader('Content-Type', response.headers['content-type']);
-    Object.entries(response.headers).forEach(([key, value]) => {
-      if (key.toLowerCase() !== 'content-type') { // Avoid duplicate
+    Object.entries(response.headers)
+      // Hapus header content-encoding jika ada (untuk mencegah konflik double compression)
+      .filter(([key]) => key.toLowerCase() !== 'content-encoding')
+      .forEach(([key, value]) => {
         res.setHeader(key, value);
-      }
-    });
+      });
 
-    // Send the correct status and payload
-    res.status(response.statusCode).send(response.result);
+    res.status(response.statusCode).json(response.result);
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ 
