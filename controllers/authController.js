@@ -5,12 +5,10 @@ const Jwt = require('jsonwebtoken');
 const Boom = require('@hapi/boom');
 const { nanoid } = require('nanoid'); 
 
-// Handler untuk registrasi user
 const registerHandler = async (request, h) => {
   const { username, email, password } = request.payload;
   
   try {
-    // Cek apakah user sudah ada
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return h.response({
@@ -28,7 +26,6 @@ const registerHandler = async (request, h) => {
         email,
         password: hashedPassword,
         verificationCode,
-        // Pastikan field verified di schema prisma Anda default false atau bersifat opsional
       },
     });
   
@@ -59,7 +56,6 @@ const registerHandler = async (request, h) => {
   }
 };
 
-// Handler untuk verifikasi email user
 const verifyEmailHandler = async (request, h) => {
   const { email, code } = request.payload;
   
@@ -100,7 +96,6 @@ const verifyEmailHandler = async (request, h) => {
   }
 };
 
-// Handler untuk login user
 const loginHandler = async (request, h) => {
   const { email, password } = request.payload;
 
@@ -113,7 +108,6 @@ const loginHandler = async (request, h) => {
     throw Boom.forbidden('Harap verifikasi email Anda terlebih dahulu');
   }
 
-  // Buat token JWT. Pastikan payload token mencakup informasi yang diperlukan (misal id atau email)
   const token = Jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
@@ -134,9 +128,7 @@ const loginHandler = async (request, h) => {
     });
 };
 
-// Handler untuk mengambil data user (endpoint /me)
 const meHandler = async (request, h) => {
-  // Misal middleware auth mengisi request.auth.credentials dengan informasi user
   const { id } = request.auth.credentials;
   try {
     const user = await prisma.user.findUnique({
@@ -163,7 +155,6 @@ const meHandler = async (request, h) => {
   }
 };
 
-// Handler untuk logout user
 const logoutHandler = async (request, h) => {
   return h.response({
     status: 'success',

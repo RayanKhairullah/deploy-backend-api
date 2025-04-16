@@ -6,7 +6,7 @@ const authMiddleware = async (request, h) => {
     // Try to get token from cookie first
     let token = request.state.token;
     
-    // If not in cookie, check Authorization header
+    // in cookie, check Authorization header
     if (!token && request.headers.authorization) {
       const authHeader = request.headers.authorization;
       if (authHeader.startsWith('Bearer ')) {

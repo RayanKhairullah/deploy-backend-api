@@ -2,9 +2,8 @@ const prisma = require('../utils/prismaClient');
 const { nanoid } = require('nanoid');
 const Boom = require('@hapi/boom');
 
-// Tambah expense baru
 const addExpenseHandler = async (request, h) => {
-  const userId = request.auth.credentials.id; // pastikan middleware auth mengisi credentials
+  const userId = request.auth.credentials.id; 
   const {
     category,
     uangmasuk,
@@ -39,9 +38,8 @@ const addExpenseHandler = async (request, h) => {
   }
 };
 
-// Dapatkan semua expense milik user
 const getExpensesByUserHandler = async (request, h) => {
-  const userId = request.auth.credentials.id;
+  const userId = request.auth.credentials.id; 
   try {
     const expenses = await prisma.expense.findMany({
       where: { id_user: userId },
@@ -62,7 +60,6 @@ const getExpensesByUserHandler = async (request, h) => {
   }
 };
 
-// Dapatkan expense berdasarkan expenseid
 const getExpenseByIdHandler = async (request, h) => {
   const { expenseid } = request.params;
   try {
@@ -85,7 +82,6 @@ const getExpenseByIdHandler = async (request, h) => {
   }
 };
 
-// Update expense berdasarkan expenseid
 const updateExpenseByIdHandler = async (request, h) => {
   const { expenseid } = request.params;
   const {
@@ -113,7 +109,6 @@ const updateExpenseByIdHandler = async (request, h) => {
       message: 'Expense berhasil diperbarui',
     }).code(200);
   } catch (error) {
-    // Jika error disebabkan oleh expense tidak ditemukan
     if (error.code === 'P2025') {
       return h.response({
         status: 'fail',
@@ -125,7 +120,6 @@ const updateExpenseByIdHandler = async (request, h) => {
   }
 };
 
-// Delete expense berdasarkan expenseid
 const deleteExpenseByIdHandler = async (request, h) => {
   const { expenseid } = request.params;
   try {
